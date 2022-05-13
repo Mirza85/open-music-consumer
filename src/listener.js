@@ -1,28 +1,36 @@
 class Listener {
-    constructor(notesService, mailSender) {
-        this._noteService = notesService;
+    constructor(playlistsService, mailSender) {
+        this._playlistsService = playlistsService;
         this._mailSender = mailSender;
 
-        this.listener = this.listener.bind(this);
+        this.listen = this.listen.bind(this);
     }
-    async listener(message) {
+    async listen(message) {
         try {
             const { playlistId, targetEmail } = JSON.parse(message.content.toString());
-            console.log(playlistId)
-            const playlistsData = await this._playlistsService.getPlaylistSongs(playlistId);
+            // console.log(targetEmail);
+            // console.log(playlistId)
+            const playlistsData = await this._playlistsService.getPlaylists(playlistId);
             //console.log(playlistData)
+            const songs = await this._playlistsService.getSongs(playlistId);
 
 
-
-            const result = await this._mailSender.sendMail(
+            console.log(playlistsData.id)
+            const result = await this._mailSender.sendEmail(
                 targetEmail,
-                playlistsData.playlist.name,
-                JSON.stringify(playlistsData),
+                JSON.stringify({
+                    playlists: {
+                        id: playlistsData.id,
+                        name: playlistsData.name,
+                        songs
+                    }
+                }),
             )
 
             console.log(result);
         } catch (error) {
             console.error(error);
+
         }
     }
 }
